@@ -58,15 +58,11 @@ Access the development server at http://127.0.0.1:8000/.
 Locations:
 GET /api/locations/: List all locations.
 POST /api/locations/: Create a new location.
-GET /api/locations/<id>/: Retrieve details of a location.
-PUT /api/locations/<id>/: Update details of a location.
 DELETE /api/locations/<id>/: Delete a location.
 
 9.Boundaries:
 GET /api/boundaries/: List all boundaries.
 POST /api/boundaries/: Create a new boundary.
-GET /api/boundaries/<id>/: Retrieve details of a boundary.
-PUT /api/boundaries/<id>/: Update details of a boundary.
 DELETE /api/boundaries/<id>/: Delete a boundary.
 
 10.GIS Operations:
