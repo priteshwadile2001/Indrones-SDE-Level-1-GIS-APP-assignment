@@ -12,7 +12,7 @@ df['coordinates'] = df.apply(lambda row: f"POINT( {row['latitude']} {row['longit
 conn = psycopg2.connect(
     dbname='gis',
     user='root',
-    password='Wadile123#',
+    password='YOUR PASSWORD',
     host='localhost',  # Change to your database host
     port=5432  # Change to your database port
 )
