@@ -108,3 +108,8 @@ gis_project/
 13.Additional Scripts
 python manage.py import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
 python database_entry.py: Import boundaries into the database.
+
+ReFerenece link:
+https://pganalyze.com/blog/geodjango-postgis
+For Download the GDAL library
+https://www.gisinternals.com/release.php
