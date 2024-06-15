@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Map with Leaflet.js</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'assest/style/main.css' %}" />
+  </head>
+  <body>
+    <div class="gis-app">
+      <div class="heading-container">
+        <h1>Indrones SDE Level 1 : GIS APP assignment</h1>
+      </div>
+      <div class="main-container">
+        
+        <div class="info-container">
+          <h4>List of all markers</h4>
+         
+            <ol class="location_markers_list" type="1">
+              {% for location in locations %}
+                  <li>{{ forloop.counter }}. {{ location.name }}</li>
+              {% endfor %}
+          </ol>
+       
+        
+          <div>
+            <h4>Calculate distance </h4>
+            <label for="location1">From</label>
+            <select id="location1" class="location-dropdown"></select> <br>
+            <label for="location2">To</label>
+            <select id="location2" class="location-dropdown"></select>
+            <button onclick="calculateDistance()">Calculate Distance</button>
+            <p id="distance-output"></p>
+          </div>
+
+          <div>
+            <h4>IsPoint presnt in boundary</h4>
+            <label for="boundary">Boundary</label>
+
+            <br>
+            <label for="point">Point</label>
+            <select id="point" class="point-dropdown"></select>
+            <button  onclick="">Check</button>
+
+
+
+          </div>
+          
+            
+       <div style="display: none;">
+            <select id="add-feature">
+              <option value="location">Add Locations</option>
+              <option value="boundary">Add Boundary</option>
+            </select>
+            <button onclick="addFeature()">Add</button>
+       </div>
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      var markersData = [];
+      var map = L.map("map").setView([27.175015, 78.042155], 13);
+      var location1Dropdown = document.getElementById("location1");
+      var location2Dropdown = document.getElementById("location2");
+      var pointDropdown = document.getElementById("point");
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+
+      function addFeature() {
+        var selectedValue = document.getElementById("add-feature").value;
+
+        if (selectedValue === "location") {
+          fetch("{% url 'location-list' %}")
+            .then((response) => response.json())
+            .then((data) => {
+              markersData = data;
+              var markers = L.featureGroup();
+              markersData.map( (landmark , index) => {
+                var marker = L.marker([
+                  landmark.coordinates[0],
+                  landmark.coordinates[1],
+                ]).bindPopup(
+                  "<b>" + landmark.name + "</b><br>" + landmark.description
+                );
+                markers.addLayer(marker);
+
+                  // Add options to the dropdowns
+                var option1 = document.createElement("option");
+                option1.value = landmark.id;
+                option1.text = landmark.name;
+                location1Dropdown.add(option1);
+
+                var option2 = document.createElement("option");
+                option2.value = landmark.id;
+                option2.text = landmark.name;
+                location2Dropdown.add(option2);
+
+                var point = document.createElement("option");
+                point.value = landmark.id;
+                point.text = landmark.name;
+                pointDropdown.add(point);
+              });
+
+              // Add the marker layer to the map
+              markers.addTo(map);
+
+              // Calculate and fit the map to the bounds of all markers
+              var bounds = markers.getBounds();
+              map.fitBounds(bounds);
+              
+            })
+            .catch((error) =>
+              console.error("Error fetching locations:", error)
+            );
+        } else if (selectedValue === "boundary") {
+          fetch("{% url 'boundary-detail' %}")
+            .then((response) => response.json())
+            .then((data) => {
+              data.forEach((boundary) => {
+                // Assuming boundary.area represents coordinates for Leaflet's Polygon or Polyline
+                L.polygon(boundary.area.coordinates)
+                  .addTo(map)
+                  .bindPopup(boundary.name);
+              });
+            })
+            .catch((error) =>
+              console.error("Error fetching boundaries:", error)
+            );
+        }
+      }
+      addFeature();
+      function calculateDistance() {
+        var location1Id = document.getElementById("location1").value;
+        var location2Id = document.getElementById("location2").value;
+        console.log(location1Id , location2Id ,"location1 , location2");
+
+        if (location1Id === "" || location2Id === "") {
+          alert("Please select both locations.");
+          return;
+        }
+
+        var location1 = markersData.find(location => location.id == location1Id);
+        var location2 = markersData.find(location => location.id == location2Id);
+
+        var latlng1 = L.latLng(location1.coordinates[0], location1.coordinates[1]);
+        var latlng2 = L.latLng(location2.coordinates[0], location2.coordinates[1]);
+
+        // Fetch distance from the API
+        fetch(`/api/calculate_distance/?location1_id=${location1Id}&location2_id=${location2Id}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (typeof polyline !== 'undefined') {
+            map.removeLayer(polyline);
+        }
+            document.getElementById("distance-output").innerText = `Distance: ${data.distance.toFixed(2)} km`;
+
+            // Draw a line between the two locations
+            var polyline = L.polyline([latlng1, latlng2], {color: 'blue'}).addTo(map);
+            map.fitBounds(polyline.getBounds());
+          })
+          .catch((error) =>
+            console.error("Error fetching distance:", error)
+          );
+      }
+    
+    </script>
+  </body>
+</html>

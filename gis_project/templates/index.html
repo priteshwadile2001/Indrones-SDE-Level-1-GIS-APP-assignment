@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locations and Boundaries</title>
+</head>
+<body>
+    <h1>Locations</h1>
+    <ul>
+        {% for location in locations %}
+        <li>{{ location.name }} - {{ location.description }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Boundaries</h1>
+    <ul>
+        {% for boundary in boundaries %}
+        <li>{{ boundary.name }} - {{ boundary.area }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

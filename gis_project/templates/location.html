@@ -1,0 +1,35 @@
+<!-- templates/locations.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locations</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map { height: 400px; }
+    </style>
+</head>
+<body>
+    <h1>All Locations</h1>
+    <ul>
+    {% for location in locations %}
+        <li>{{ location.name }} - {{ location.description }}</li>
+    {% endfor %}
+    </ul>
+
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map').setView([51.505, -0.09], 2);  // Initial map view
+
+        // Add markers for locations
+        {% for location in locations %}
+            L.marker([{{ location.coordinates.y }}, {{ location.coordinates.x }}]).addTo(map)
+                .bindPopup("{{ location.name }} - {{ location.description }}");
+        {% endfor %}
+    </script>
+</body>
+</html>
