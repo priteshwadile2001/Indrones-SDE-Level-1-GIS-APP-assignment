@@ -107,4 +107,5 @@ python database_entry.py: Import boundaries into the database.
 
 ReFerenece link:
 GeoDjango and PostGIS Setup
+Download the GDAL GeoDjango and PostGIS Setup
 Download the GDAL library
