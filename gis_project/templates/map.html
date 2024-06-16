@@ -1,232 +1,236 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Map with Leaflet.js</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'assest/style/main.css' %}" />
-  <style>
-    #map {
-      height: 500px;
-    }
-  </style>
-</head>
-<body>
-  <div class="gis-app">
-    <div class="heading-container">
-      <h1>Indrones SDE Level 1: GIS APP assignment</h1>
-    </div>
-    <div class="main-container">
-      <div class="info-container">
-        <h4>List of all markers</h4>
-        <ol class="location_markers_list" type="1">
-          {% for location in locations %}
-            <li>{{ forloop.counter }}. {{ location.name }}</li>
-          {% endfor %}
-        </ol>
-
-        <div>
-          <h4>Calculate distance</h4>
-          <label for="location1">From</label>
-          <select id="location1" class="location-dropdown"></select> <br>
-          <label for="location2">To</label>
-          <select id="location2" class="location-dropdown"></select>
-          <button onclick="calculateDistance()">Calculate Distance</button>
-          <p id="distance-output"></p>
-        </div>
-
-        <div>
-          <h4>Check if Point is inside Boundary</h4>
-          <label for="boundary">Boundary</label>
-          <select id="boundary" class="boundary-dropdown"></select>
-          <br>
-          <label for="latitude">Latitude:</label>
-          <input type="text" id="latitude" name="latitude" required>
-          <br>
-          <label for="longitude">Longitude:</label>
-          <input type="text" id="longitude" name="longitude" required>
-          <button onclick="checkBoundary()">Check</button>
-          <p id="boundary-check-result"></p>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Indrones SDE Level 1: GIS APP assignment</title>
+    <!-- leaflet style  -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />  
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'assest/style/main.css' %}" />
+  </head>
+  <body>
+    <div class="gis-app">
+      <div class="heading-container">
+        <h1>Indrones SDE Level 1: GIS APP assignment</h1>
       </div>
-      <div id="map"></div>
+      <div class="main-container">
+        <!-- left side container  -->
+        <div class="info-container">
+          <div class="list-container">
+            <div class="markers-list-container">
+              <h4>List of all markers</h4>
+              <ol class="location_markers_list">
+                {% for location in locations %}
+                <li>{{ forloop.counter }}. {{ location.name }}</li>
+                {% endfor %}
+              </ol>
+            </div>
+            <div class="boundaries-list-container">
+              <h4>List of all boundaries</h4>
+              <ol class="boundaries_list">
+                {% for boundary in boundary_data %}
+                <li>{{ forloop.counter }}. {{ boundary.name }}</li>
+                {% endfor %}
+              </ol>
+            </div>
+          </div>
+
+          <div>
+            <h4>Calculate distance</h4>
+            <!-- lable for location 1 element -->
+            <label for="location1">From</label>
+            <select id="location1" class="location-dropdown">
+              <option value="">Select Location</option>
+            </select>
+            <br/>
+            <label for="location2">To</label>
+            <select id="location2" class="location-dropdown">
+              <option value="">Select Location</option>
+            </select>
+            <button onclick="calculateDistance()">Calculate Distance</button>
+            <p id="distance-output"></p>
+          </div>
+
+          <div>
+            <h4>Check if Point is inside Boundary</h4>
+            <label for="boundary">Boundary</label>
+            <select id="boundary" class="boundary-dropdown">
+              <option value="">Select Boundary</option>
+            </select>
+            <br />
+            <label for="pointToCheck">Point</label>
+            <select id="pointToCheck" class="pointToCheck-dropdown">
+              <option value="">Select Point</option>
+            </select>
+            <button onclick="checkPointLiesInBoundary()">Check</button>
+            <p id="boundary-check-result"></p>
+          </div>
+        </div>
+        <!-- right side map con -->
+        <div id="map"></div>
+      </div>
     </div>
-  </div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    var markersData = [];
-    var map = L.map("map").setView([27.175015, 78.042155], 13);
-    var location1Dropdown = document.getElementById("location1");
-    var location2Dropdown = document.getElementById("location2");
-    var boundaryDropdown = document.getElementById("boundary");
-    var latitudeInput = document.getElementById("latitude");
-    var longitudeInput = document.getElementById("longitude");
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      // var-- global scope  ,let -- func scope , assign value nantar, const --  fucn scope , decleare when we assign value
+      let markersData = [];
+      let boundariesList = [];
+      // l = leaf let class . map = fuc , setView([27.175015, 78.042155], 13); = setview= coordinate for india taj mahal, 13 = zoom level
+      let map = L.map("map").setView([27.175015, 78.042155], 13);
+      let location1Dropdown = document.getElementById("location1");
+      let location2Dropdown = document.getElementById("location2");
+      let boundaryDropdown = document.getElementById("boundary");
+      let pointToCheckDropdown = document.getElementById("pointToCheck");
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-    }).addTo(map);
+      // tilelayer = base map ui , https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png - this is base map url 
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
 
-    function addFeature() {
-      fetch("{% url 'location-list' %}")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          markersData = data;
-          markersData.forEach((landmark) => {
-            var option1 = document.createElement("option");
-            option1.value = landmark.id;
-            option1.textContent = landmark.name;
-            location1Dropdown.appendChild(option1);
-
-            var option2 = document.createElement("option");
-            option2.value = landmark.id;
-            option2.textContent = landmark.name;
-            location2Dropdown.appendChild(option2);
-          });
-
-          var markers = L.featureGroup(markersData.map(function(landmark) {
-            return L.marker([landmark.coordinates[0], landmark.coordinates[1]])
-                .bindPopup("<b>" + landmark.name + "</b><br>" + landmark.description);
-          }));
-          map.addLayer(markers);
-          map.fitBounds(markers.getBounds());
-        })
-        .catch((error) => console.error("Error fetching locations:", error));
-
-      fetch("{% url 'boundary-list' %}")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          data.forEach((boundary) => {
-            var option = document.createElement("option");
-            option.value = boundary.id;
-            option.textContent = boundary.name;
-            boundaryDropdown.appendChild(option);
-
-            if (boundary.area && boundary.area.coordinates) {
-              var coordinates = boundary.area.coordinates.map(coord => [coord[1], coord[0]]);
-              L.polygon(coordinates)
-                .addTo(map)
-                .bindPopup(boundary.name);
-            } else {
-              console.warn("Boundary data is missing coordinates:", boundary);
+      function addFeature() {
+        fetch("/api/locations/")
+          .then((response) => { 
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
             }
-          });
-        })
-        .catch((error) => console.error("Error fetching boundaries:", error));
-    }
+            return response.json();
+          })
+          .then((data) => {
+            markersData = data;
+            console.log(data);
 
-    document.addEventListener('DOMContentLoaded', addFeature);
+            markersData.forEach((landmark) => {
+              var option1 = document.createElement("option");
+              option1.value = landmark.id;
+              option1.textContent = landmark.name;
+              location1Dropdown.appendChild(option1);
 
-    function calculateDistance() {
-      var location1Id = document.getElementById("location1").value;
-      var location2Id = document.getElementById("location2").value;
+              var option2 = document.createElement("option");
+              option2.value = landmark.id;
+              option2.textContent = landmark.name;
+              location2Dropdown.appendChild(option2);
 
-      if (location1Id === "" || location2Id === "") {
-        alert("Please select both locations.");
-        return;
+              var pointToCheck = document.createElement("option");
+              pointToCheck.value = landmark.id;
+              pointToCheck.textContent = landmark.name;
+              pointToCheckDropdown.appendChild(pointToCheck);
+            });
+
+            // featuregroup - marker grp , grp of elements
+            var markers = L.featureGroup(
+        
+              markersData.map((landmark) => {
+                return L.marker([
+                  landmark.coordinates[0],
+                  landmark.coordinates[1],
+                ]).bindPopup(
+                  "<b>" + landmark.name + "</b><br>" + landmark.description
+                );
+              })
+            );
+            map.addLayer(markers);
+            map.fitBounds(markers.getBounds());
+          })
+          .catch((error) => console.error("Error fetching locations:", error));
+
+        fetch("/api/boundaries/")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            boundariesList = data;
+            data.forEach((boundary) => {
+              var boundaryOption = document.createElement("option");
+              boundaryOption.value = boundary.id;
+              boundaryOption.textContent = boundary.name;
+              boundaryDropdown.appendChild(boundaryOption);
+            });
+          })
+          .catch((error) => console.error("Error fetching boundaries:", error));
       }
 
-      var location1 = markersData.find(location => location.id == location1Id);
-      var location2 = markersData.find(location => location.id == location2Id);
 
-      var latlng1 = L.latLng(location1.coordinates[0], location1.coordinates[1]);
-      var latlng2 = L.latLng(location2.coordinates[0], location2.coordinates[1]);
+      addFeature();
 
-      fetch(`/api/calculate_distance/?location1_id=${location1Id}&location2_id=${location2Id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (typeof polyline !== 'undefined') {
-            map.removeLayer(polyline);
-          }
-          document.getElementById("distance-output").innerText = `Distance: ${data.distance.toFixed(2)} km`;
+      function calculateDistance() {
+        var location1Id = document.getElementById("location1").value;
+        var location2Id = document.getElementById("location2").value;
 
-          var polyline = L.polyline([latlng1, latlng2], {color: 'blue'}).addTo(map);
-          map.fitBounds(polyline.getBounds());
-        })
-        .catch((error) =>
-          console.error("Error fetching distance:", error)
-        );
-    }
-
-    function checkBoundary() {
-      var latitude = parseFloat(document.getElementById("latitude").value);
-      var longitude = parseFloat(document.getElementById("longitude").value);
-      var boundaryId = document.getElementById("boundary").value;
-    
-      if (isNaN(latitude) || isNaN(longitude) || boundaryId === "") {
-        alert("Please select a boundary and enter valid latitude and longitude.");
-        return;
-      }
-    
-      var pointCoordinates = L.latLng(latitude, longitude);
-    
-      fetch(`/api/boundary/${boundaryId}/`)
-        .then(response => response.json())
-        .then(data => {
-          console.log('Boundary data:', data);
-    
-          // Extract and parse the polygon coordinates from the area field
-          var areaString = data.area;
-          var coordinates = parsePolygonCoordinates(areaString);
-    
-          // Create a Leaflet polygon and check if point is inside
-          var polygon = L.polygon(coordinates);
-          var isInside = polygon.getBounds().contains(pointCoordinates);
-    
-          if (isInside) {
-            document.getElementById("boundary-check-result").innerText = "Point is inside the boundary.";
-          } else {
-            document.getElementById("boundary-check-result").innerText = "Point is outside the boundary.";
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching boundary data:", error);
-          document.getElementById("boundary-check-result").innerText = "Error checking boundary.";
-        });
-    }
-    
-    // Function to parse polygon coordinates from the area field
-    function parsePolygonCoordinates(areaString) {
-      // Extract coordinates from the area string
-      var matches = areaString.match(/\(\(([^)]+)\)\)/);
-      if (matches && matches.length > 1) {
-        var coordinatesString = matches[1];
-        var coordinatesArray = coordinatesString.split(',').map(coord => {
-          var parts = coord.trim().split(' ');
-          return [parseFloat(parts[0]), parseFloat(parts[1])];
-        });
-        return coordinatesArray;
-      } else {
-        console.error("Invalid area format:", areaString);
-        return [];
-      }
-    }
-
-    function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-          var cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
+        if (location1Id === "" || location2Id === "") {
+          alert("Please select both locations.");
+          return;
         }
+
+        var location1 = markersData.find(
+          (location) => location.id == location1Id
+        );
+        var location2 = markersData.find(
+          (location) => location.id == location2Id
+        );
+
+        var latlng1 = L.latLng(
+          location1.coordinates[0],
+          location1.coordinates[1]
+        );
+        var latlng2 = L.latLng(
+          location2.coordinates[0],
+          location2.coordinates[1]
+        );
+
+        fetch(
+          `/api/calculate_distance/?location1_id=${location1Id}&location2_id=${location2Id}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            
+            document.getElementById(
+              "distance-output"
+            ).innerText = `Distance: ${data.distance.toFixed(2)} km`;
+
+            var polyline = L.polyline([latlng1, latlng2], {
+              color: "blue",
+            }).addTo(map);
+            map.fitBounds(polyline.getBounds());
+          })
+          .catch((error) => console.error("Error fetching distance:", error));
       }
-      return cookieValue;
-    }
-  </script>
-</body>
+
+      function checkPointLiesInBoundary() {
+        var boundaryId = document.getElementById("boundary").value;
+        var pointToCheckId = document.getElementById("pointToCheck").value;
+
+        console.log(boundaryId, pointToCheckId);
+
+        if (boundaryId === "" || pointToCheckId === "") {
+          alert("Please select a boundary and point");
+          return;
+        }
+
+        fetch(
+          `/api/checkBoundary/?boundary_id=${boundaryId}&point_id=${pointToCheckId}/`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.isInside) {
+              document.getElementById("boundary-check-result").innerText =
+                "Point is inside the boundary.";
+            } else {
+              document.getElementById("boundary-check-result").innerText =
+                "Point is outside the boundary.";
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching boundary data:", error);
+            document.getElementById("boundary-check-result").innerText =
+              "Error checking boundary.";
+          });
+      }
+
+
+    </script>
+  </body>
 </html>
