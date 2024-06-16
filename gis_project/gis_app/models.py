@@ -11,13 +11,7 @@ class Location(models.Model):
     def __str__(self):
         return self.name  # String representation of the Location instance
 
-    # def to_dict(self):
-    #     return {
-    #         'id': self.id,
-    #         'name': self.name,
-    #         'description': self.description,
-    #         'coordinates': [self.coordinates.x, self.coordinates.y]  # Extracting longitude and latitude
-    #     }
+
 
 # Model for storing boundary data
 class Boundary(models.Model):
@@ -29,9 +23,4 @@ class Boundary(models.Model):
     def __str__(self):
         return self.name  # String representation of the Boundary instance
     
-    # def to_dict(self):
-    #     return {
-    #         'id': self.id,
-    #         'name': self.name,
-    #         'area': self.area,  # Storing the boundary area
-    #     }
+  
