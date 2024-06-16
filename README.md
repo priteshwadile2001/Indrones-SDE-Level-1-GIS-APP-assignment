@@ -15,9 +15,8 @@ This Django project implements geographic information system (GIS) functionaliti
 
 1. **Clone the repository:**
 
-   ```bash
-   git clone <repository-url>
-   cd gis_project
+         git clone <repository-url>
+         cd gis_project
 
 2.## Create and activate virtual environment:
 - python3 -m venv env
@@ -33,7 +32,7 @@ This Django project implements geographic information system (GIS) functionaliti
 
 5.** Update your DATABASES setting in settings.py:**
 
-      ```bash
+      
       DATABASES = {
           'default': {
               'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -56,18 +55,18 @@ This Django project implements geographic information system (GIS) functionaliti
   
 6.**Apply migrations**:
 
-      ```bash
+      
       python manage.py makemigrations
       python manage.py migrate
 
 7.**Run the development server**:
 
-        ```bash
+        
         python manage.py createsuperuser
         
 8.**Run the development server**:
 
-      ```bash
+      
       python manage.py runserver
 
 Access the development server at http://127.0.0.1:8000/.
@@ -95,7 +94,7 @@ Access the development server at http://127.0.0.1:8000/.
    - The frontend displays a list of locations and boundaries.
    - A map (using Leaflet.js) shows markers for each location, allowing interaction to calculate distances and check boundary inclusion.
      
-13. ## Project Structure
+13. ## Project Structure :
 
           
           gis_project/
@@ -124,11 +123,11 @@ Access the development server at http://127.0.0.1:8000/.
          ├── requirements.txt        # Python package dependencies
          └── README.md               # This README file
 
-14. ## Additional Scripts
+14. ## Additional Scripts:
     - python manage.py import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
     - python database_entry.py: Import boundaries into the database.
 
-15. ## References
+15. ## References :
 
 - GeoDjango and PostGIS Setup -- https://pganalyze.com/blog/geodjango-postgis
 - Download the GDAL library  -- https://www.gisinternals.com/release.php
