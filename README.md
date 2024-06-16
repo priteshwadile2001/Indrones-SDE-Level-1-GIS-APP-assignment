@@ -97,7 +97,7 @@ Access the development server at http://127.0.0.1:8000/.
      
 13. ## Project Structure
 
-          graphql
+          
           gis_project/
          │
          ├── gis_app/                # Django app for GIS functionalities
@@ -130,5 +130,5 @@ Access the development server at http://127.0.0.1:8000/.
 
 15. ## References
 
-- GeoDjango and PostGIS Setup
-- Download the GDAL library
+- GeoDjango and PostGIS Setup -- https://pganalyze.com/blog/geodjango-postgis
+- Download the GDAL library  -- https://www.gisinternals.com/release.php
