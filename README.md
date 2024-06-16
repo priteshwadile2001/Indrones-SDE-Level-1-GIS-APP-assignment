@@ -44,6 +44,7 @@ This Django project implements geographic information system (GIS) functionaliti
               'PORT': '5432',  # Use your actual PostgreSQL port
           }
       }
+      
 
 ## Data Import Scripts
  To put the CSV data into the PostgreSQL database, use the following Python scripts:
@@ -51,6 +52,7 @@ This Django project implements geographic information system (GIS) functionaliti
 - clean_csv.py: This script cleans the messy data.
 - database_entry.py: This script imports boundary data into the database.
 - import_locations.py: This script imports location data into the database.
+  
   
 6.**Apply migrations**:
 
@@ -70,15 +72,63 @@ This Django project implements geographic information system (GIS) functionaliti
 
 Access the development server at http://127.0.0.1:8000/.
 
-9.## API Endpoints
+9.## API Endpoints :
    Locations
    - GET /api/locations/: List all locations.
    - POST /api/locations/: Create a new location.
    - DELETE /api/locations/<id>/: Delete a location.
 
-10.## Boundaries
+10.## Boundaries :
 
    - GET /api/boundaries/: List all boundaries.
    - POST /api/boundaries/: Create a new boundary.
    - DELETE /api/boundaries/<id>/: Delete a boundary.
+
+11.## GIS Operations:
+
+   - GET /api/calculate-distance/?location1=<id>&location2=<id>: Calculate distance between two locations.
+   - GET /api/check-boundary/?location=<id>&boundary=<id>: Check if a location falls within a boundary.
      
+12.## Frontend Integration :
+   Access the frontend at http://127.0.0.1:8000/.
+   
+   - The frontend displays a list of locations and boundaries.
+   - A map (using Leaflet.js) shows markers for each location, allowing interaction to calculate distances and check boundary inclusion.
+     
+13. ## Project Structure
+
+    graphql
+    gis_project/
+│
+├── gis_app/                # Django app for GIS functionalities
+│   ├── migrations/         # Database migrations
+│   ├── models.py           # Location and Boundary models
+│   ├── serializers.py      # Serializers for API
+│   ├── views.py            # Views for API endpoints
+│   ├── urls.py             # URL routing for API
+│   ├── utils.py            # Utility functions (if applicable)
+│   ├── admin.py            # Admin configurations (if applicable)
+│   ├── Management/         # Management commands for data handling
+│   │   └── commands/
+│   │       ├── import_locations.py  # Script to import locations
+│   │       └── database_entry.py    # Script to import boundaries
+│   └── ...
+│
+├── static/                 # Static files (JS, CSS, images)
+│   ├── js/
+│   ├── css/
+│   ├── img/
+│   └── ...
+│
+├── manage.py               # Django's command-line utility
+├── requirements.txt        # Python package dependencies
+└── README.md               # This README file
+
+14. ## Additional Scripts
+    - python manage.py import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
+    - python database_entry.py: Import boundaries into the database.
+
+15. ## References
+
+- GeoDjango and PostGIS Setup
+- Download the GDAL library
