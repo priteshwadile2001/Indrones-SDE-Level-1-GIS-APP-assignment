@@ -19,20 +19,21 @@ This Django project implements geographic information system (GIS) functionaliti
    git clone <repository-url>
    cd gis_project
 
-## Create and activate virtual environment:
+2.## Create and activate virtual environment:
 - python3 -m venv env
 - source env/bin/activate   # On Windows use `env\Scripts\activate`
 
-##  Install dependencies:
+3.##  Install dependencies:
 - pip install -r requirements.txt
 
-## Set up PostgreSQL database:
+4.## Set up PostgreSQL database:
 
 - Create a database named gis in PostgreSQL.
 - Enable the PostGIS extension in your gis database
 
-## Update your DATABASES setting in settings.py:
+5.** Update your DATABASES setting in settings.py:**
 "
+```bash
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
