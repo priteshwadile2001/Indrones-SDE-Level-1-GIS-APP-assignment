@@ -112,7 +112,7 @@ GEOS_LIBRARY_PATH = r'C:\Program Files\GDAL\geos_c.dll'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',  \
-        'NAME': 'gis',
+        'NAME': 'DB_NAME',
         'USER': 'root',
         'PASSWORD': 'YOUR_PASSWORD',
         'HOST': 'localhost',
