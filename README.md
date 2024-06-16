@@ -97,32 +97,32 @@ Access the development server at http://127.0.0.1:8000/.
      
 13. ## Project Structure
 
-    graphql
-    gis_project/
-│
-├── gis_app/                # Django app for GIS functionalities
-│   ├── migrations/         # Database migrations
-│   ├── models.py           # Location and Boundary models
-│   ├── serializers.py      # Serializers for API
-│   ├── views.py            # Views for API endpoints
-│   ├── urls.py             # URL routing for API
-│   ├── utils.py            # Utility functions (if applicable)
-│   ├── admin.py            # Admin configurations (if applicable)
-│   ├── Management/         # Management commands for data handling
-│   │   └── commands/
-│   │       ├── import_locations.py  # Script to import locations
-│   │       └── database_entry.py    # Script to import boundaries
-│   └── ...
-│
-├── static/                 # Static files (JS, CSS, images)
-│   ├── js/
-│   ├── css/
-│   ├── img/
-│   └── ...
-│
-├── manage.py               # Django's command-line utility
-├── requirements.txt        # Python package dependencies
-└── README.md               # This README file
+          graphql
+          gis_project/
+      │
+      ├── gis_app/                # Django app for GIS functionalities
+      │   ├── migrations/         # Database migrations
+      │   ├── models.py           # Location and Boundary models
+      │   ├── serializers.py      # Serializers for API
+      │   ├── views.py            # Views for API endpoints
+      │   ├── urls.py             # URL routing for API
+      │   ├── utils.py            # Utility functions (if applicable)
+      │   ├── admin.py            # Admin configurations (if applicable)
+      │   ├── Management/         # Management commands for data handling
+      │   │   └── commands/
+      │   │       ├── import_locations.py  # Script to import locations
+      │   │       └── database_entry.py    # Script to import boundaries
+      │   └── ...
+      │
+      ├── static/                 # Static files (JS, CSS, images)
+      │   ├── js/
+      │   ├── css/
+      │   ├── img/
+      │   └── ...
+      │
+      ├── manage.py               # Django's command-line utility
+      ├── requirements.txt        # Python package dependencies
+      └── README.md               # This README file
 
 14. ## Additional Scripts
     - python manage.py import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
