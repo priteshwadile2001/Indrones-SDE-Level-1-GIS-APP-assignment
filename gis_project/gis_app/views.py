@@ -2,18 +2,18 @@
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point  # Importing Point from Django GIS
 from gis_app.models import Location, Boundary  # Importing models Location and Boundary from gis_app
 from gis_app.seriliazers import LocationSerializer, BoundarySerializer  # Importing serializers for Location and Boundary
 from rest_framework.views import APIView  # Importing APIView from Django REST Framework
 from django.http import Http404  # Importing Http404 exception from Django HTTP
-from .utils import process_csv_file  # Importing function process_csv_file from local module
-from django.http import JsonResponse  # Importing JsonResponse from Django HTTP
-from django.contrib.gis.geos import Point  # Importing Point again from Django GIS
 from geopy.distance import geodesic  # Importing geodesic function from geopy.distance
 from django.contrib.auth.decorators import login_required  # Importing login_required decorator from Django auth
 from rest_framework.permissions import IsAuthenticated  # Importing IsAuthenticated permission class from DRF
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 
 # Define a class-based view with APIView for a protected endpoint
 class MyProtectedView(APIView):
@@ -41,117 +41,121 @@ class BoundaryViewSet(viewsets.ModelViewSet):
     queryset = Boundary.objects.all()  # Query all Boundary objects
     serializer_class = BoundarySerializer  # Use BoundarySerializer for serialization
 
+# API endpoint for detailed operations on Location model
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+def LocationDetailAPIView(request, pk):
+    try:
+        location = Location.objects.get(pk=pk)  # Retrieve Location by primary key
+    except Location.DoesNotExist:
+        return Response({"detail": "Location not found."}, status=status.HTTP_404_NOT_FOUND)  # Return 404 if not found
+
+    if request.method == 'GET':
+        serializer = LocationSerializer(location)  # Serialize Location data
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        location.delete()  # Delete Location
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 # Define an API endpoint for calculating distance between two locations
 @api_view(['GET'])
 def calculate_distance(request):
-    location1_id = request.query_params.get('location1_id')  # Get location1_id from query parameters
-    location2_id = request.query_params.get('location2_id')  # Get location2_id from query parameters
+    location1_id = request.query_params.get('location1_id')  # Get first location ID from query parameters
+    location2_id = request.query_params.get('location2_id')  # Get second location ID from query parameters
 
     if not location1_id or not location2_id:
-        return Response({"detail": "Both location1_id and location2_id are required."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Both location1_id and location2_id are required."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if IDs are missing
 
-    try:
-        location1 = get_object_or_404(Location, pk=location1_id)  # Retrieve Location object with location1_id
-        location2 = get_object_or_404(Location, pk=location2_id)  # Retrieve Location object with location2_id
+    location1 = get_object_or_404(Location, pk=location1_id)  # Retrieve first Location
+    location2 = get_object_or_404(Location, pk=location2_id)  # Retrieve second Location
 
-        if not isinstance(location1.coordinates, Point) or not isinstance(location2.coordinates, Point):
-            return Response({"detail": "Invalid coordinates for one or both locations."}, status=status.HTTP_400_BAD_REQUEST)
+    if not isinstance(location1.coordinates, Point) or not isinstance(location2.coordinates, Point):
+        return Response({"detail": "Invalid coordinates for one or both locations."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if coordinates are invalid
 
-        lat1, lon1 = location1.coordinates.y, location1.coordinates.x  # Extract latitude and longitude from Point objects
-        lat2, lon2 = location2.coordinates.y, location2.coordinates.x  # Extract latitude and longitude from Point objects
+    # Assuming coordinates are in degrees and using geopy for accurate distance calculation
+    coord1 = (location1.coordinates.y, location1.coordinates.x)  # Extract coordinates of first Location
+    coord2 = (location2.coordinates.y, location2.coordinates.x)  # Extract coordinates of second Location
+    distance = geodesic(coord1, coord2).kilometers  # Calculate distance using geopy
 
-        if not (-90 <= lat1 <= 90 and -90 <= lat2 <= 90):
-            return Response({"detail": "Latitude values must be within -90 to 90 degrees."}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'distance': distance}, status=status.HTTP_200_OK)  # Return distance in response
 
-        distance = geodesic((lat1, lon1), (lat2, lon2)).kilometers  # Calculate distance using geopy
+# Custom authentication token view
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})  # Validate request data
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)  # Get or create authentication token
+        return Response({'token': token.key})  # Return token in response
 
-        return Response({'distance': distance}, status=status.HTTP_200_OK)  # Return distance in kilometers
-
-    except Location.DoesNotExist:
-        return Response({"detail": "One or both locations not found."}, status=status.HTTP_404_NOT_FOUND)
-    except ValueError as e:
-        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({"detail": "An error occurred while calculating distance."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# API endpoint to check if a location is within a boundary
-@api_view(['GET'])
-def check_boundary(request):
-    point_id = request.GET.get('point_id')  # Get point_id from query parameters
-    boundary_id = request.GET.get('boundary_id')  # Get boundary_id from query parameters
-    point = Location.objects.get(id=point_id)  # Retrieve Location object with point_id
-    boundary = Boundary.objects.get(id=boundary_id)  # Retrieve Boundary object with boundary_id
-
-    is_within_boundary = False
-    boundaries = Boundary.objects.all()  # Query all Boundary objects
-
-    for boundary in boundaries:
-        if point.coordinates.within(boundary.area):  # Check if point is within boundary's area
-            is_within_boundary = True
-            break
-
-    response_data = {
-        'is_within_boundary': is_within_boundary,
-    }
-    return JsonResponse(response_data)  # Return JSON response indicating if point is within boundary
-
-# APIView for detailed operations on Boundary model
+# Detail API view for Boundary model
 class BoundaryDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure authentication is required for this view
+
     def get_object(self, pk):
         try:
-            return Boundary.objects.get(pk=pk)  # Get Boundary object by primary key
+            return Boundary.objects.get(pk=pk)  # Retrieve Boundary by primary key
         except Boundary.DoesNotExist:
-            raise Http404  # Raise Http404 if Boundary does not exist
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        boundary = self.get_object(pk)
+        serializer = BoundarySerializer(boundary)  # Serialize Boundary data
+        return Response(serializer.data)
 
     def put(self, request, pk, format=None):
-        boundary = self.get_object(pk)  # Retrieve Boundary object
-        serializer = BoundarySerializer(boundary, data=request.data)  # Initialize serializer with Boundary data
+        boundary = self.get_object(pk)
+        serializer = BoundarySerializer(boundary, data=request.data)  # Deserialize and validate data
         if serializer.is_valid():
-            serializer.save()  # Save serializer data
-            return Response(serializer.data)  # Return serialized data
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return errors if serializer is not valid
+            serializer.save()  # Save updated Boundary
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
 
     def patch(self, request, pk, format=None):
-        boundary = self.get_object(pk)  # Retrieve Boundary object
-        serializer = BoundarySerializer(boundary, data=request.data, partial=True)  # Initialize serializer with partial data
+        boundary = self.get_object(pk)
+        serializer = BoundarySerializer(boundary, data=request.data, partial=True)  # Partially update Boundary
         if serializer.is_valid():
-            serializer.save()  # Save serializer data
-            return Response(serializer.data)  # Return serialized data
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return errors if serializer is not valid
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
 
-# Function-based view to list locations and boundaries
-def location_list(request):
-    locations = Location.objects.all()  # Query all Location objects
-    boundaries = Boundary.objects.all()  # Query all Boundary objects
-    return render(request, 'index.html', {'locations': locations, 'boundaries': boundaries})  # Render index.html with locations and boundaries
+    def delete(self, request, pk, format=None):
+        boundary = self.get_object(pk)
+        boundary.delete()  # Delete Boundary
+        return Response(status=status.HTTP_204_NO_CONTENT)  # Return 204 No Content
 
 # Function-based view to render map using Leaflet.js
+# def map_view(request):
+#     locations = Location.objects.all()  # Query all Location objects
+#     boundary = Boundary.objects.all()  # Query all Boundary objects
+#     locations_data = [location.to_dict() for location in locations]  # Convert Location objects to dictionary format
+#     boundary_data = [boundary.to_dict() for boundary in boundary]  # Convert Boundary objects to dictionary format
+#     return render(request, 'map.html', {'locations': locations_data, 'boundary_data': boundary_data})  # Render map.html with locations and boundaries data
+
 def map_view(request):
-    locations = Location.objects.all()  # Query all Location objects
-    boundary = Boundary.objects.all()  # Query all Boundary objects
-    locations_data = [location.to_dict() for location in locations]  # Convert Location objects to dictionary format
-    Boundary_data = [Boundary.to_dict() for Boundary in boundary]  # Convert Boundary objects to dictionary format
-    return render(request, 'map.html', {'locations': locations_data, 'Boundary_data': Boundary_data})  # Render map.html with locations and boundaries data
+    boundaries = Boundary.objects.all()
+    locations = Location.objects.all()
+    context = {
+        'Boundary_data': boundaries,
+        'locations': locations,
+    }
+    return render(request, 'your_template.html', context)
 
-# API endpoint to import locations from CSV
-@api_view(['POST'])
-def import_locations_from_csv(request):
-    file = request.FILES.get('file')  # Get uploaded file from request
-    if not file:
-        return Response({"detail": "No file uploaded."}, status=400)  # Return error if no file uploaded
 
-    try:
-        success_count, error_count = process_csv_file(file)  # Process uploaded CSV file
-        return Response({
-            "detail": f"Imported {success_count} locations. {error_count} errors occurred."  # Return success message
-        }, status=200)
-    except Exception as e:
-        return Response({"detail": str(e)}, status=500)  # Return error message if exception occurs
+# API view to check if a location is within any boundary
+class CheckLocationView(APIView):
+    def post(self, request, *args, **kwargs):
+        lat = request.data.get('latitude')  # Get latitude from request data
+        lng = request.data.get('longitude')  # Get longitude from request data
 
-# APIView for listing boundaries with authentication required
-class BoundaryListView(APIView):
-    permission_classes = [IsAuthenticated]  # Specify that authentication is required
+        if lat is None or lng is None:
+            return Response({"error": "Latitude and longitude are required."}, status=400)  # Return 400 if coordinates are missing
 
-    def get(self, request):
+        point = Point(float(lng), float(lat))  # Create Point object with given coordinates
+
         boundaries = Boundary.objects.all()  # Query all Boundary objects
-        return Response({"boundaries": list(boundaries.values())}, status=status.HTTP_200_OK)  # Return serialized boundaries
+        for boundary in boundaries:
+            if boundary.area.contains(point):  # Check if Point is within Boundary
+                return Response({"within_boundary": True, "boundary_id": boundary.id, "boundary_name": boundary.name})  # Return success response
+
+        return Response({"within_boundary": False})  # Return response if Point is not within any Boundary
