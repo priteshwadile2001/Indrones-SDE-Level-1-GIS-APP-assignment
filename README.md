@@ -32,7 +32,7 @@ This Django project implements geographic information system (GIS) functionaliti
 - Enable the PostGIS extension in your gis database
 
 5.** Update your DATABASES setting in settings.py:**
-"
+
 ```bash
 DATABASES = {
     'default': {
@@ -44,4 +44,9 @@ DATABASES = {
         'PORT': '5432',  # Use your actual PostgreSQL port
     }
 }
-"
+
+6.### Apply migrations:
+```bash
+python manage.py makemigrations
+python manage.py migrate
+
