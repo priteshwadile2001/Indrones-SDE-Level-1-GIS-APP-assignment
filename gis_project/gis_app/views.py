@@ -139,7 +139,7 @@ def map_view(request):
         'Boundary_data': boundaries,
         'locations': locations,
     }
-    return render(request, 'your_template.html', context)
+    return render(request, 'map.html', context)
 
 
 # API view to check if a location is within any boundary
