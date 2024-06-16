@@ -94,6 +94,8 @@ Access the development server at http://127.0.0.1:8000/.
      ![Assessment Screenshot](gis_project/static/assest/style/assesment.png)
 
    - A map (using Leaflet.js) shows markers for each location, allowing interaction to calculate distances and check boundary inclusion.
+
+   -  [Leaflet map].(gis_project/static/assest/style/map.png)
      
      
 13. ## Project Structure :
