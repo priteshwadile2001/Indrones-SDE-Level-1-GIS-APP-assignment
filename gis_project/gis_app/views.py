@@ -27,9 +27,9 @@ def protected_data_view(request):
     return render(request, 'protected_data.html')  # Render protected_data.html template
 
 # Define a function-based view requiring login for accessing profile.html
-@login_required
-def profile_view(request):
-    return render(request, 'profile.html')  # Render profile.html template
+# @login_required
+# def profile_view(request):
+#     return render(request, 'profile.html')  # Render profile.html template
 
 # Define a ViewSet for handling Location model operations
 class LocationViewSet(viewsets.ModelViewSet):
