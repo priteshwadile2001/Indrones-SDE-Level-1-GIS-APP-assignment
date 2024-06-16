@@ -33,16 +33,16 @@ This Django project implements geographic information system (GIS) functionaliti
 5. ** Update your DATABASES setting in settings.py:**
 
       
-      DATABASES = {
-          'default': {
-              'ENGINE': 'django.contrib.gis.db.backends.postgis',
-              'NAME': 'DB_name',
-              'USER': 'User',
-              'PASSWORD': 'Password',
-              'HOST': 'localhost',
-              'PORT': '5432',  # Use your actual PostgreSQL port
-          }
-      }
+               DATABASES = {
+                   'default': {
+                       'ENGINE': 'django.contrib.gis.db.backends.postgis',
+                       'NAME': 'DB_name',
+                       'USER': 'User',
+                       'PASSWORD': 'Password',
+                       'HOST': 'localhost',
+                       'PORT': '5432',  # Use your actual PostgreSQL port
+                   }
+               }
       
 
 ## Data Import Scripts
