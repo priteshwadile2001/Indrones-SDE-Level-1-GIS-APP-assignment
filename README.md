@@ -84,8 +84,8 @@ Access the development server at http://127.0.0.1:8000/.
 
 11. ## GIS Operations:
 
-   - GET /api/calculate-distance/?location1=<id>&location2=<id>: Calculate distance between two locations.
-   - GET /api/check-boundary/?location=<id>&boundary=<id>: Check if a location falls within a boundary.
+   - GET /api/calculate_distance/?location1_id=${location1Id}&location2_id=${location2Id}: Calculate distance between two locations.
+   - GET /api/check-boundary/?boundary_id=${boundaryId}&point_id=${pointToCheckId}/: Check if a location falls within a boundary.
      
 12. ## Frontend Integration :
    Access the frontend at http://127.0.0.1:8000/.
