@@ -12,24 +12,19 @@ from django.http import Http404  # Importing Http404 exception from Django HTTP
 from geopy.distance import geodesic  # Importing geodesic function from geopy.distance
 from django.contrib.auth.decorators import login_required  # Importing login_required decorator from Django auth
 from rest_framework.permissions import IsAuthenticated  # Importing IsAuthenticated permission class from DRF
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
+
 
 # Define a class-based view with APIView for a protected endpoint
 class MyProtectedView(APIView):
     permission_classes = [IsAuthenticated]  # Specify that authentication is required
-
+    
     def get(self, request):
         return Response({"message": "This is a protected view"})  # Return a simple JSON response
 
-# Define a function-based view requiring login for accessing protected_data.html
-def protected_data_view(request):
-    return render(request, 'protected_data.html')  # Render protected_data.html template
-
 # Define a function-based view requiring login for accessing profile.html
-# @login_required
-# def profile_view(request):
-#     return render(request, 'profile.html')  # Render profile.html template
+@login_required
+def profile_view(request):
+    return render(request, 'profile.html')  # Render profile.html template
 
 # Define a ViewSet for handling Location model operations
 class LocationViewSet(viewsets.ModelViewSet):
@@ -42,7 +37,8 @@ class BoundaryViewSet(viewsets.ModelViewSet):
     serializer_class = BoundarySerializer  # Use BoundarySerializer for serialization
 
 # API endpoint for detailed operations on Location model
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+
+@api_view(['GET', 'DELETE'])
 def LocationDetailAPIView(request, pk):
     try:
         location = Location.objects.get(pk=pk)  # Retrieve Location by primary key
@@ -56,37 +52,7 @@ def LocationDetailAPIView(request, pk):
     elif request.method == 'DELETE':
         location.delete()  # Delete Location
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Define an API endpoint for calculating distance between two locations
-@api_view(['GET'])
-def calculate_distance(request):
-    location1_id = request.query_params.get('location1_id')  # Get first location ID from query parameters
-    location2_id = request.query_params.get('location2_id')  # Get second location ID from query parameters
-
-    if not location1_id or not location2_id:
-        return Response({"detail": "Both location1_id and location2_id are required."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if IDs are missing
-
-    location1 = get_object_or_404(Location, pk=location1_id)  # Retrieve first Location
-    location2 = get_object_or_404(Location, pk=location2_id)  # Retrieve second Location
-
-    if not isinstance(location1.coordinates, Point) or not isinstance(location2.coordinates, Point):
-        return Response({"detail": "Invalid coordinates for one or both locations."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if coordinates are invalid
-
-    # Assuming coordinates are in degrees and using geopy for accurate distance calculation
-    coord1 = (location1.coordinates.y, location1.coordinates.x)  # Extract coordinates of first Location
-    coord2 = (location2.coordinates.y, location2.coordinates.x)  # Extract coordinates of second Location
-    distance = geodesic(coord1, coord2).kilometers  # Calculate distance using geopy
-
-    return Response({'distance': distance}, status=status.HTTP_200_OK)  # Return distance in response
-
-# Custom authentication token view
-class CustomAuthToken(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})  # Validate request data
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)  # Get or create authentication token
-        return Response({'token': token.key})  # Return token in response
+    
 
 # Detail API view for Boundary model
 class BoundaryDetailAPIView(APIView):
@@ -124,23 +90,43 @@ class BoundaryDetailAPIView(APIView):
         boundary.delete()  # Delete Boundary
         return Response(status=status.HTTP_204_NO_CONTENT)  # Return 204 No Content
 
-# Function-based view to render map using Leaflet.js
-# def map_view(request):
-#     locations = Location.objects.all()  # Query all Location objects
-#     boundary = Boundary.objects.all()  # Query all Boundary objects
-#     locations_data = [location.to_dict() for location in locations]  # Convert Location objects to dictionary format
-#     boundary_data = [boundary.to_dict() for boundary in boundary]  # Convert Boundary objects to dictionary format
-#     return render(request, 'map.html', {'locations': locations_data, 'boundary_data': boundary_data})  # Render map.html with locations and boundaries data
 
+# Define an API endpoint for calculating distance between two locations
+@api_view(['GET'])
+def calculate_distance(request):
+    location1_id = request.query_params.get('location1_id')  # Get first location ID from query parameters
+    location2_id = request.query_params.get('location2_id')  # Get second location ID from query parameters
+
+    if not location1_id or not location2_id:
+        return Response({"detail": "Both location1_id and location2_id are required."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if IDs are missing
+
+    location1 = get_object_or_404(Location, pk=location1_id)  # Retrieve first Location
+    location2 = get_object_or_404(Location, pk=location2_id)  # Retrieve second Location
+    print(location1,location2,'&&&&&&&&&&&&&&&&&')
+
+    if not isinstance(location1.coordinates, Point) or not isinstance(location2.coordinates, Point):
+        return Response({"detail": "Invalid coordinates for one or both locations."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if coordinates are invalid
+
+    # Assuming coordinates are in degrees and using geopy for accurate distance calculation
+    coord1 = (location1.coordinates.y, location1.coordinates.x)  # Extract coordinates of first Location
+    print(coord1,"coord")
+    coord2 = (location2.coordinates.y, location2.coordinates.x)  # Extract coordinates of second Location
+    print(coord2,"****")
+    distance = geodesic(coord1, coord2).kilometers  # Calculate distance using geopy
+    print(distance,'distance')
+
+    return Response({'distance': distance}, status=status.HTTP_200_OK)  # Return distance in response
+
+
+# View for rendering the map.html template
 def map_view(request):
     boundaries = Boundary.objects.all()
     locations = Location.objects.all()
     context = {
-        'Boundary_data': boundaries,
+        'boundary_data': boundaries,
         'locations': locations,
     }
     return render(request, 'map.html', context)
-
 
 # API view to check if a location is within any boundary
 class CheckLocationView(APIView):
@@ -159,3 +145,34 @@ class CheckLocationView(APIView):
                 return Response({"within_boundary": True, "boundary_id": boundary.id, "boundary_name": boundary.name})  # Return success response
 
         return Response({"within_boundary": False})  # Return response if Point is not within any Boundary
+
+# API view to check if a boundary contains a specific location
+class CheckBoundaryView(APIView):
+    def post(self, request, *args, **kwargs):
+        boundary_id = request.data.get('boundary_id')
+        location_id = request.data.get('location_id')
+
+        if not boundary_id or not location_id:
+            return Response({"error": "Boundary ID and location ID are required."}, status=400)
+
+        try:
+            boundary = Boundary.objects.get(id=boundary_id)
+        except Boundary.DoesNotExist:
+            return Response({"error": "Boundary does not exist."}, status=404)
+
+        try:
+            location = Location.objects.get(id=location_id)
+            latitude = location.latitude
+            longitude = location.longitude
+            
+        except Location.DoesNotExist:
+            return Response({"error": "Location does not exist."}, status=404)
+
+        # Create the point from location's coordinates
+        point = Point(longitude, latitude)  # Correct order: longitude, latitude
+
+        # Check if the point is within the boundary
+        if boundary.area.contains(point):
+            return Response({"within_boundary": True, "boundary_name": boundary.name})
+        else:
+            return Response({"within_boundary": False})
