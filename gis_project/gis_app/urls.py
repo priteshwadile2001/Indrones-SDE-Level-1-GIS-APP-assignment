@@ -19,16 +19,15 @@ router.register(r'boundaries', BoundaryViewSet)  # Registering BoundaryViewSet w
 urlpatterns = [
     path('', include(router.urls)),  # Including router URLs (automatically includes URLs for 'locations' and 'boundaries')
     path('locations/<int:pk>/', views.LocationDetailAPIView, name='location-detail'),
+    path('boundaries/', BoundaryDetailAPIView.as_view(), name='boundary-detail'),  # URL pattern for BoundaryDetailAPIView
     path('check-location/', CheckLocationView.as_view(), name='check-location'),
     path('check-boundary/', CheckBoundaryView.as_view(), name='check-boundary'),
     path('map/', views.map_view, name='map-view'),  # URL pattern for map view
     path('calculate_distance/', calculate_distance, name='calculate_distance'),  # URL pattern for calculate_distance API endpoint
-    path('boundaries/', BoundaryDetailAPIView.as_view(), name='boundary-detail'),  # URL pattern for BoundaryDetailAPIView
     path('auth/', include('rest_framework.urls')),  # URL patterns for authentication views provided by Django REST Framework
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),  # URL pattern for login view with custom template
     path('accounts/profile/', views.profile_view, name='profile'),  # URL pattern for profile view
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # URL pattern for obtaining JWT token
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # URL pattern for refreshing JWT token
+
    
 ]
 
