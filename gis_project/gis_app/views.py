@@ -102,8 +102,7 @@ def calculate_distance(request):
 
     location1 = get_object_or_404(Location, pk=location1_id)  # Retrieve first Location
     location2 = get_object_or_404(Location, pk=location2_id)  # Retrieve second Location
-    print(location1,location2,'&&&&&&&&&&&&&&&&&')
-
+    
     if not isinstance(location1.coordinates, Point) or not isinstance(location2.coordinates, Point):
         return Response({"detail": "Invalid coordinates for one or both locations."}, status=status.HTTP_400_BAD_REQUEST)  # Return 400 if coordinates are invalid
 
