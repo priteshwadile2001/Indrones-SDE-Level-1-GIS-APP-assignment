@@ -14,12 +14,6 @@ from django.contrib.auth.decorators import login_required  # Importing login_req
 from rest_framework.permissions import IsAuthenticated  # Importing IsAuthenticated permission class from DRF
 
 
-# Define a class-based view with APIView for a protected endpoint
-class MyProtectedView(APIView):
-    permission_classes = [IsAuthenticated]  # Specify that authentication is required
-    
-    def get(self, request):
-        return Response({"message": "This is a protected view"})  # Return a simple JSON response
 
 # Define a function-based view requiring login for accessing profile.html
 @login_required
