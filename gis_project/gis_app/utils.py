@@ -1,24 +1,9 @@
-from rest_framework.views import exception_handler  # Importing exception_handler from Django REST Framework views
-from rest_framework.exceptions import AuthenticationFailed  # Importing AuthenticationFailed exception from DRF
-from rest_framework.response import Response  # Importing Response class from DRF
 import csv  # Importing CSV module for CSV file operations
 from io import TextIOWrapper  # Importing TextIOWrapper from io module for file decoding
 from django.contrib.gis.geos import Point  # Importing Point from Django GIS
 from .models import Location  # Importing Location model from current directory's models module
 
 # Custom exception handler for handling specific exceptions
-def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)  # Default exception handler from DRF
-    
-    if isinstance(exc, AuthenticationFailed) and 'Session expired' in str(exc):
-        # Handling AuthenticationFailed exception with specific message
-        response_data = {
-            'error': 'Session expired',
-            'message': 'Your session has expired. Please refresh the page to continue.'
-        }
-        return Response(response_data, status=401)  # Returning customized response with status code 401
-    
-    return response  # Returning default response if no custom handling is required
 
 # Function to process uploaded CSV file
 def process_csv_file(file):
