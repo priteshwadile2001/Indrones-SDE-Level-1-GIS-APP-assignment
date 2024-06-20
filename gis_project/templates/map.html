@@ -18,7 +18,7 @@
         <div class="info-container">
           <div class="list-container">
             <div class="markers-list-container">
-              <h4>List of all locations</h4>
+              <h4>List of all Locations</h4>
               <ol class="location_markers_list">
                 {% for location in locations %}
                 <li>{{ forloop.counter }}. {{ location.name }}</li>
@@ -160,6 +160,8 @@
         var location1Id = document.getElementById("location1").value;
         var location2Id = document.getElementById("location2").value;
 
+        console.log(location1Id,location2Id);
+
         if (location1Id === "" || location2Id === "") {
           alert("Please select both locations.");
           return;
@@ -211,7 +213,7 @@
         }
 
         fetch(
-          `/api/checkBoundary/?boundary_id=${boundaryId}&point_id=${pointToCheckId}/`
+          `/api/check-boundary/?boundary_id=${boundaryId}&point_id=${pointToCheckId}/`
         )
           .then((response) => response.json())
           .then((data) => {
