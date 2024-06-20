@@ -136,6 +136,6 @@ Access the development server at http://127.0.0.1:8000/.
 
 - GeoDjango and PostGIS Setup -- https://pganalyze.com/blog/geodjango-postgis
 - Download the GDAL library  -- https://www.gisinternals.com/release.php
-- How we can calculate the distance between toe poinst -- https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+- How we can calculate the distance between to points -- https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
 - Leaflet Map integration -- https://leafletjs.com/index.html
   
