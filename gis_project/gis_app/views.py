@@ -1,5 +1,5 @@
 # Import necessary modules and functions from Django and Django REST Framework
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render 
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -11,7 +11,7 @@ from django.http import Http404  # Importing Http404 exception from Django HTTP
 from geopy.distance import geodesic  # Importing geodesic function from geopy.distance
 from django.contrib.auth.decorators import login_required  # Importing login_required decorator from Django auth
 from rest_framework.permissions import IsAuthenticated  # Importing IsAuthenticated permission class from DRF
-
+from django.http import JsonResponse
 
 # Define a function-based view requiring login for accessing profile.html
 @login_required
@@ -145,31 +145,37 @@ def map_view(request):
     # Render the 'map.html' template with the provided context data
     return render(request, 'map.html', context)
 
-
 class CheckBoundaryView(APIView):
-    def post(self, request, *args, **kwargs):
-        boundary_id = request.data.get('boundary_id')
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
+    def get(self, request, *args, **kwargs):
+        # Extract query parameters from the request
+        boundary_id = request.query_params.get('boundary_id')
+        latitude = request.query_params.get('latitude')
+        longitude = request.query_params.get('longitude')
 
+        # Check if required parameters are present
         if not boundary_id or latitude is None or longitude is None:
+            # Return a 400 Bad Request response if any parameter is missing
             return Response({"error": "Boundary ID, latitude, and longitude are required."}, status=400)
 
         try:
+            # Attempt to retrieve the Boundary object with the provided ID
             boundary = Boundary.objects.get(id=boundary_id)
-          
         except Boundary.DoesNotExist:
-            return Response({"error": "Boundary does not exist."}, status=404)
+            # If Boundary object does not exist, return a 404 Not Found response
+            print(f"Boundary with ID '{boundary_id}' does not exist.")
+            return Response({"error": f"Boundary with ID '{boundary_id}' does not exist."}, status=404)
 
-        # Create the point from provided coordinates
-        point = Point(float(longitude), float(latitude))  # Ensure they are floats
-       
+        # Create a Point object from the provided latitude and longitude
+        try:
+            point = Point(float(longitude), float(latitude))  # Ensure they are floats
+        except ValueError:
+            # If latitude or longitude cannot be converted to floats, return a 400 Bad Request response
+            return Response({"error": "Invalid latitude or longitude."}, status=400)
 
-        # Check if the point is within the boundary
+        # Check if the point is within the boundary's area
         if boundary.area.contains(point):
+            # If the point is within the boundary, return a response indicating so
             return Response({"within_boundary": True, "boundary_name": boundary.name})
         else:
+            # If the point is outside the boundary, return a response indicating so
             return Response({"within_boundary": False})
-
-
-    
