@@ -59,6 +59,7 @@
             </select>
             <br />
             <label for="pointToCheck">Point</label>
+            
             <select id="pointToCheck" class="pointToCheck-dropdown">
               <option value="">Select Point</option>
             </select>
@@ -205,7 +206,9 @@
         var boundaryId = document.getElementById("boundary").value;
         var pointToCheckId = document.getElementById("pointToCheck").value;
 
-        console.log(boundaryId, pointToCheckId);
+        console.log(boundaryId);
+        console.log(pointToCheckId);
+
 
         if (boundaryId === "" || pointToCheckId === "") {
           alert("Please select a boundary and point");
