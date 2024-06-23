@@ -1,7 +1,6 @@
 from django.contrib import admin  # Importing Django's admin module
 from django.urls import path, include  # Importing path and include functions from Django's URL library
 from gis_app import views  # Importing views from gis_app module
-from gis_app.views import protected_data_view  # Importing protected_data_view from gis_app.views
 from django.contrib.auth import views as auth_views  # Importing views from Django's authentication module
 
 urlpatterns = [
