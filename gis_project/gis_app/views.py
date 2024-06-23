@@ -3,15 +3,14 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.gis.geos import Point,polygon  # Importing Point from Django GIS
+from django.contrib.gis.geos import Point  # Importing Point from Django GIS
 from gis_app.models import Location, Boundary  # Importing models Location and Boundary from gis_app
 from gis_app.seriliazers import LocationSerializer, BoundarySerializer  # Importing serializers for Location and Boundary
 from rest_framework.views import APIView  # Importing APIView from Django REST Framework
 from django.http import Http404  # Importing Http404 exception from Django HTTP
 from geopy.distance import geodesic  # Importing geodesic function from geopy.distance
 from django.contrib.auth.decorators import login_required  # Importing login_required decorator from Django auth
-from rest_framework.permissions import IsAuthenticated  # Importing IsAuthenticated permission class from DRF
-from django.http import JsonResponse
+
 
 # Define a function-based view requiring login for accessing profile.html
 @login_required
@@ -28,79 +27,6 @@ class BoundaryViewSet(viewsets.ModelViewSet):
     queryset = Boundary.objects.all()  # Query all Boundary objects
     serializer_class = BoundarySerializer  # Use BoundarySerializer for serialization
     
-
-class LocationDetailAPIView(APIView):
-    def get_object(self, pk):
-        try:
-            return Location.objects.get(pk=pk)  # Retrieve Location by primary key
-        except Location.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        location = self.get_object(pk)
-        serializer = LocationSerializer(location)  # Serialize Location data
-        return Response(serializer.data)
-
-    def delete(self, request, pk, format=None):
-        location = self.get_object(pk)
-        location.delete()  # Delete Location
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def put(self, request, pk, format=None):
-        location = self.get_object(pk)
-        serializer = LocationSerializer(location, data=request.data)  # Deserialize and validate data
-        if serializer.is_valid():
-            serializer.save()  # Save updated Location
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk, format=None):
-        location = self.get_object(pk)
-        serializer = LocationSerializer(location, data=request.data, partial=True)  # Partially update Location
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-
-# Detail API view for Boundary model
-class BoundaryDetailAPIView(APIView):
-    # permission_classes = [IsAuthenticated]  # Ensure authentication is required for this view
-
-    def get_object(self, pk):
-        try:
-            return Boundary.objects.get(pk=pk)  # Retrieve Boundary by primary key
-        except Boundary.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        boundary = self.get_object(pk)
-        serializer = BoundarySerializer(boundary)  # Serialize Boundary data
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        boundary = self.get_object(pk)
-        serializer = BoundarySerializer(boundary, data=request.data)  # Deserialize and validate data
-        if serializer.is_valid():
-            serializer.save()  # Save updated Boundary
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
-
-    def patch(self, request, pk, format=None):
-        boundary = self.get_object(pk)
-        serializer = BoundarySerializer(boundary, data=request.data, partial=True)  # Partially update Boundary
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
-
-    def delete(self, request, pk, format=None):
-        boundary = self.get_object(pk)
-        boundary.delete()  # Delete Boundary
-        return Response(status=status.HTTP_204_NO_CONTENT)  # Return 204 No Content
-
-
 # Define an API endpoint for calculating distance between two locations
 @api_view(['GET'])
 def calculate_distance(request):
