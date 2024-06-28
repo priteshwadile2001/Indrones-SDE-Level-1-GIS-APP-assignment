@@ -5,13 +5,10 @@ from gis_app.models import Location
 from django.contrib.gis.geos import Point
 
 class Command(BaseCommand):
-    help = 'Import locations from a CSV file'
+    help = 'Import locations data from CSV file'
 
-    def add_arguments(self, parser):
-        parser.add_argument('csv_file', type=str, help='The path to the CSV file')
-
-    def handle(self, *args, **kwargs):
-        csv_file = kwargs['csv_file']
+    def handle(self, *args, **options):
+        csv_file = r'C:\Test\projects\New folder\gis_project\cleaned_location.csv'
 
         with open(csv_file, newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
