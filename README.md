@@ -48,9 +48,9 @@ This Django project implements geographic information system (GIS) functionaliti
 ## Data Import Scripts
  To put the CSV data into the PostgreSQL database, use the following Python scripts:
 - organized_csv_data.py: This script organizes the data into column format.
-- clean_csv.py: This script cleans the messy data.
-- database_entry.py: This script imports boundary data into the database.
-- import_locations.py: This script imports location data into the database.
+- clean_csv.py: This script cleans the messy data. -- python clean_csv.py 
+- import_boundaries.py: This script imports boundary data into the database.-- python manage.py import_boundaries 
+- import_locations.py: This script imports location data into the database. -- python manage.py import_locations
   
   
 6. **Apply migrations**:
@@ -128,8 +128,8 @@ Access the development server at http://127.0.0.1:8000/.
          └── README.md               # This README file
 
 14. ## Additional Scripts:
-    - python manage.py import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
-    - python database_entry.py: Import boundaries into the database.
+    - python import_locations: Import locations from a file (assuming import_locations.py is correctly configured as a management command).
+    - python import_boundaries.py: Import boundaries into the database.
     - python clean_csv.py : clean the duplicate data
 
 15. ## References :
